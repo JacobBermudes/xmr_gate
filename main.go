@@ -4,11 +4,16 @@ import (
 	"log"
 	"net/http"
 	"xmr_mixer/connectors"
+	library_reporter "xmr_mixer/connectors/bd"
 )
 
 // CurrencyProvider определяет интерфейс для получения списка валют
 type CurrencyProvider interface {
 	GetCurrencies() ([]byte, error)
+}
+
+type AddressBookProvider interface {
+	GetAddressBook() ([]byte, error)
 }
 
 func avoidCORS(h http.HandlerFunc) http.HandlerFunc {
@@ -20,18 +25,31 @@ func avoidCORS(h http.HandlerFunc) http.HandlerFunc {
 
 func main() {
 
-	// DexConnector как CurrencyProvider
-	var provider CurrencyProvider = &connectors.DexConnector{}
+	var crypto_getter CurrencyProvider = &connectors.DexConnector{}
+	var addressBookReader AddressBookProvider = &library_reporter.Libreporter{}
 
 	http.HandleFunc("/api/v1/currencies", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		resp, err := provider.GetCurrencies()
+		resp, err := crypto_getter.GetCurrencies()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`[]`))
 			return
 		}
 		w.Write(resp)
+	}))
+
+	http.HandleFunc("/api/v1/addressbook", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		resp, err := addressBookReader.GetAddressBook()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`[]`))
+			return
+
+		}
+		w.Write(resp)
+
 	}))
 
 	log.Println("Сервер запущен на :8080")
