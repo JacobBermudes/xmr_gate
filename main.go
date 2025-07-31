@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"xmr_mixer/connectors"
-	library_reporter "xmr_mixer/connectors/bd"
+	"xmr_mixer/signin"
 )
 
 // CurrencyProvider определяет интерфейс для получения списка валют
@@ -14,6 +14,14 @@ type CurrencyProvider interface {
 
 type AddressBookProvider interface {
 	GetAddressBook() ([]byte, error)
+}
+
+type GenericLoginHandler interface {
+	Login(w http.ResponseWriter, r *http.Request)
+}
+
+type GenericRegisterHandler interface {
+	Register(w http.ResponseWriter, r *http.Request)
 }
 
 func avoidCORS(h http.HandlerFunc) http.HandlerFunc {
@@ -26,7 +34,9 @@ func avoidCORS(h http.HandlerFunc) http.HandlerFunc {
 func main() {
 
 	var crypto_getter CurrencyProvider = &connectors.DexConnector{}
-	var addressBookReader AddressBookProvider = &library_reporter.Libreporter{}
+
+	var genericLogin GenericLoginHandler = &signin.GenericController{}
+	var genericRegister GenericRegisterHandler = &signin.GenericController{}
 
 	http.HandleFunc("/api/v1/currencies", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -41,15 +51,17 @@ func main() {
 
 	http.HandleFunc("/api/v1/addressbook", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		resp, err := addressBookReader.GetAddressBook()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`[]`))
-			return
+		w.Write([]byte(`{"addressbook": "This is a placeholder for address book data"}`))
+	}))
 
-		}
-		w.Write(resp)
+	http.HandleFunc("/api/login", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		genericLogin.Login(w, r)
+	}))
 
+	http.HandleFunc("/api/register", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		genericRegister.Register(w, r)
 	}))
 
 	log.Println("Сервер запущен на :8080")
