@@ -54,12 +54,12 @@ func main() {
 		w.Write([]byte(`{"addressbook": "This is a placeholder for address book data"}`))
 	}))
 
-	http.HandleFunc("/api/login", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/v1/login", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		genericLogin.Login(w, r)
 	}))
 
-	http.HandleFunc("/api/register", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/v1/register", avoidCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		genericRegister.Register(w, r)
 	}))

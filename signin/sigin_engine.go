@@ -73,7 +73,7 @@ func (a *GenericController) Register(w http.ResponseWriter, r *http.Request) {
 		return err
 	})
 	if err == nil {
-		http.Error(w, "user exists", http.StatusConflict)
+		http.Error(w, "User exists", http.StatusConflict)
 		return
 	}
 	err = db.Update(func(txn *badger.Txn) error {
